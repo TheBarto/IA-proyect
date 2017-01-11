@@ -4,16 +4,19 @@
 #include <stdlib.h>
 #include <syslog.h>
 
-//PUEDE SER NECESARIA UNA REVISION DEL CÓDIGO
+//Hacer pruebas de funcionamiento
 
 #define TRUE 1
+#define OK 1
 #define FALSE 0
- 
+#define ERR -1
+
 typedef int (*comparator)(const void *a, const void *b);
- 
+
 typedef struct{
     void * data;
     struct Node* next;
+    struct Node* previous;
 }Node;
 
 typedef struct {
@@ -22,6 +25,8 @@ typedef struct {
     Node * last;
 }LinkedList;
 
+typedef int (*lcmp)(LinkedList *l, const int *pos1, const int *pos2);
+typedef int (*pfunc_pivote)(LinkedList *, int* , int* );
 
 LinkedList* create_list(comparator comparacion);
 
@@ -41,9 +46,16 @@ int destroy_list (LinkedList * lista);
  
 void* return_element_by_pos(int pos, LinkedList *l);
 
-void delete_elem_by_pos(int pos, LinkedList *l);
+int delete_elem_by_pos(int pos, LinkedList *l);
 
-void add_datos_lista(LinkedList * l, double** datos, int n_datos);
- 
+int add_datos_lista(LinkedList * l, double** datos, int n_datos);
+
+/*  Estas funciones son para comprobar que la lista
+    funcione correctamente */
+
+void print_all_elems_ini(LinkedList * l);
+
+void print_all_elems_fin(LinkedList * l);
+
 #endif 
 

@@ -74,6 +74,7 @@ LinkedList* create_list(comparator comparacion) {
 void *  destroy_node(Node * n) {
     n->data = NULL;
     n->next = NULL;
+    n->previous = NULL;
     free(n);
     n = NULL;
     
@@ -118,25 +119,30 @@ void *  destroy_node(Node * n) {
 int delete_elem_list(LinkedList * l, void * elem){
     Node * node;
     Node * node_anterior;
+
     /*Error en el paso de argumentos*/
     if (l == NULL || elem == NULL){
-        return -1;
+        return ERR;
     }
+
     /*La lista esta vacia*/
     if (is_empty_list(l)==TRUE){
-        return -1;
+        return ERR;
     }
  
     /*Si el elemento fuera el primero de todos*/
     node = l->first;
     if(l->cmp(elem, node->data)==TRUE){
         l->first = (Node *)node->next;
+        l->first->previous = NULL;
         node = destroy_node(node);
-        return 1;
+        return TRUE;
     }
+
     /*Busqueda del elemento*/
     node_anterior = l->first;
     node = (Node *)l->first->next;
+    Node *e = NULL;
     while(node!=NULL){
         if(l->cmp(elem, node->data)==TRUE){ 
             /*Hemos encontrado el elemento*/
@@ -145,18 +151,18 @@ int delete_elem_list(LinkedList * l, void * elem){
                 l->last = node_anterior;
             }
             node_anterior->next = node->next;
+            e = (Node *)node->next;
+            e->previous = (struct Node *)node_anterior;
             node = destroy_node(node);
-            return 1;
+            return TRUE;
         }
         /*No era el objetivo, continuamos buscando*/
         node_anterior = node;
         node =(Node *) node->next;
     }
     /*El elemento no ha sido encontrado*/
-    return 0;
+    return FALSE;
 }
-
-
 
 /**
  * @page delete_elem_list \b delete_elem_list
@@ -185,15 +191,13 @@ int delete_elem_list(LinkedList * l, void * elem){
  */
 int is_empty_list(LinkedList * l) {
     if(l == NULL){
-        return -1;
+        return ERR;
     }
     if(l->first == NULL){
         return TRUE;
     }
     return FALSE;
 }
-
-
 
 /**
  * @page find \b find
@@ -224,7 +228,6 @@ int is_empty_list(LinkedList * l) {
  * Silvia Anguita (silvia.anguita@estudiante.uam.es)
  * Ángel Fuente (angel.fuente@estudiante.uam.es)
 */
-
 void* find(void *clave, LinkedList *l) {
     Node *nodoaux = NULL;
 
@@ -243,7 +246,7 @@ void* find(void *clave, LinkedList *l) {
 }
 
 
-/*
+/**
  * @page insert_list \b insert_list
  *
  * @brief Insert an element on a list.
@@ -270,30 +273,28 @@ void* find(void *clave, LinkedList *l) {
  * @section seealso VER TAMBIÉN
  * \b create_list(3), \b destroy_node(3), \b destroy_list(3), \b delete_elem_list(3),\b is_empty_list(3), \b find(3), \b destroy_all_nodes(3)
  */
-
 int insert_list(LinkedList * l, void * elem){
     Node * node;
     if (l == NULL || elem == NULL){
-        return -1;
+        return ERR;
     }
     node = (Node *) malloc(sizeof (Node));
     if (node == NULL){
-        return -1;
+        return ERR;
     }
     node->data = elem;
     node->next = NULL;
     if (is_empty_list(l)==TRUE){
         l->first = node;
         l->last = node;
-        return 1;
+        node->previous = NULL;
+        return TRUE;
     }
-    l->last->next =(struct Node *) node;
+    node->previous = (struct Node *) l->last;
+    l->last->next = (struct Node *) node;
     l->last = node;
-    return 1;
+    return TRUE;
 }
-
-
-
 
 /**
  * @page destroy_all_nodes \b destroy_all_nodes
@@ -333,9 +334,8 @@ int destroy_all_nodes (Node * first){
         
         first = destroy_node(first);
     }
-    return 0;
+    return FALSE;
 }
-
 
 /**
  * @page destroy_list \b destroy_list
@@ -371,7 +371,7 @@ int destroy_all_nodes (Node * first){
 int destroy_list (LinkedList * lista){
  
     if (lista == NULL)
-        return -1;
+        return ERR;
  
     if (is_empty_list(lista) == FALSE){
         destroy_all_nodes(lista->first);
@@ -382,15 +382,14 @@ int destroy_list (LinkedList * lista){
     lista->cmp = NULL;
     free(lista);
  
-    return 0;
+    return TRUE;
 }
-
 
 void* return_element_by_pos(int pos, LinkedList *l) {
     Node *nodoaux = NULL;
 
     if (!l) {
-        syslog(LOG_ERR, "Error al buscar un elemento en la lista, debido a un puntero nulo");
+        //syslog(LOG_ERR, "Error al buscar un elemento en la lista, debido a un puntero nulo");
         exit(EXIT_FAILURE);
     }
     int i = 0;
@@ -407,25 +406,29 @@ int delete_elem_by_pos(int pos, LinkedList *l){
     Node * node;
     Node * node_anterior;
     /*Error en el paso de argumentos*/
-    if (l == NULL || elem == NULL){
-        return -1;
+    if (l == NULL){
+        return ERR;
     }
+
     /*La lista esta vacia*/
     if (is_empty_list(l)==TRUE){
-        return -1;
+        return ERR;
     }
  
     /*Si el elemento fuera el primero de todos*/
     node = l->first;
     if(pos == 0){
         l->first = (Node *)node->next;
+        l->first->previous = NULL;
         node = destroy_node(node);
-        return 1;
+        return TRUE;
     }
+
     /*Busqueda del elemento*/
     node_anterior = l->first;
     node = (Node *)l->first->next;
     int i = 1;
+    Node* e = NULL;
     while(node!=NULL){
         if(i == pos){ 
             /*Hemos encontrado el elemento*/
@@ -434,8 +437,10 @@ int delete_elem_by_pos(int pos, LinkedList *l){
                 l->last = node_anterior;
             }
             node_anterior->next = node->next;
+            e = (Node *)node->next;
+            e->previous = (struct Node *)node_anterior;
             node = destroy_node(node);
-            return 1;
+            return TRUE;
         }
         /*No era el objetivo, continuamos buscando*/
         node_anterior = node;
@@ -443,15 +448,190 @@ int delete_elem_by_pos(int pos, LinkedList *l){
         i++;
     }
     /*El elemento no ha sido encontrado*/
-    return 0;
+    return FALSE;
 }
 
-void add_datos_lista(LinkedList * l, double** datos, int n_datos) {
+int add_datos_lista(LinkedList * l, double** datos, int n_datos) {
 
 	int i = 0;
 
+    //Insertamos los datos en la lista por filas
 	for(i = 0; i < n_datos; i++)
 		insert_list(l,(void *)datos[i]);
 	
-	return;
+	return TRUE;
+}
+
+int int_comparator(LinkedList * l, int* i, int* j) {
+
+    int elem1 = *(int *)return_element_by_pos(*i,l);
+    int elem2 = *(int *)return_element_by_pos(*j,l);
+
+    if (elem1 < elem2)
+        return 1;
+    else if (elem1 == elem2)
+        return 0;
+    else
+        return -1;
+}
+
+int swap(LinkedList * l, int* pos1, int* pos2) {
+
+    Node* node1 = NULL;
+    Node* node2 = NULL;
+    Node* naux = NULL;
+    int i = 0;
+
+    for (naux = l->first; node1 == NULL || node2 == NULL;naux = (Node *)naux->next,i++) {
+        if (i == *pos1) 
+            node1 = (Node*)naux;
+        if (i == *pos2)
+            node2 = (Node*)naux;
+    }
+
+    naux = (Node *)node1->next;
+    node1->next = node2->next;
+    node2->next = (struct Node *)naux;
+
+    naux = (Node *)node1->previous;
+    node1->previous = node2->previous;
+    node2->previous = (struct Node *)naux;
+
+    if (node1->next == NULL){
+        l->last = (Node *)node1;
+    }
+    if (node1->previous == NULL){
+        l->first = (Node *)node1;
+    }
+
+    if (node2->next == NULL){
+        l->last = (Node *)node2;
+    }
+    if (node2->previous == NULL){
+        l->first = (Node *)node2;
+    }
+
+    if (node1->next != NULL){
+        naux = (Node *)node1->next;
+        naux->previous = (struct Node *)node1;
+    }
+    if (node1->previous != NULL){
+        naux = (Node *)node1->previous;
+        naux->next = (struct Node *)node1;
+    }
+    if (node2->next != NULL){
+        naux = (Node *)node2->next;
+        naux->previous = (struct Node *)node2;
+    }
+    if(node2->previous != NULL){
+        naux = (Node *)node2->previous;
+        naux->next = (struct Node *)node2;
+    }
+   
+   return OK;
+}
+
+int merge(LinkedList * l, int* ini, int* fin, int* medio,lcmp cmp) {
+
+    int i = *ini;
+    int j = *fin + 1;
+
+    for (;i<=*medio && j <=*fin;) {
+        if(cmp(l,&i,&j) == 1)
+            i++; //El caso de que el valor de i sea menor o igual a j.
+        else{
+            swap(l,&i,&j);
+            j++;
+        }
+    }
+    return OK;
+}
+
+int mergersort(LinkedList * l, int* ini, int* fin,lcmp cmp) {
+
+    int medio = (*ini + *fin)/2;
+    int c1 = -1;
+    int c2 = -1;
+
+    if (l == NULL || *ini > *fin)
+        return ERR;
+    else if(*ini == *fin)
+        return FALSE;
+    else{
+        c1 = mergersort(l,ini,&medio,cmp);
+        c2 = mergersort(l,&medio+1,fin,cmp);
+    }
+    if (c1 == ERR && c2 == ERR)
+        return ERR;
+    if (merge(l,ini,fin,&medio,cmp) == ERR)
+        return ERR;
+
+    return OK;
+}
+
+int partir(LinkedList * l, int* ini, int* fin, pfunc_pivote pivote, lcmp comparator){
+
+    int b = pivote(l,ini,fin);
+    void* a = (int *)return_element_by_pos(b,l);
+    swap(l,ini,&b);
+    int i=0;
+    b=*ini;
+    
+    for(i=*ini+1;i<=*fin;i++){
+        if(comparator(l,&i,a) == 1){
+            b++;
+            swap(l,&i,&b);
+        }
+    }
+    swap(l,ini,&b);
+
+    return b;
+}
+
+int quicksort(LinkedList * l, int* ini, int* fin, pfunc_pivote pivote, lcmp comparator) {
+
+    if(l==NULL)
+        return ERR;
+    else if(*ini > *fin)
+        return ERR;
+    else if(*ini == *fin)
+        return OK;
+    else {
+        int a=partir(l,ini,fin,pivote,comparator);   
+    
+        if(*ini < a-1)
+            quicksort(l,ini,&a-1,pivote,comparator);
+        if(a+1 < *fin)
+            quicksort(l,&a+1,fin,pivote,comparator);
+   }
+
+    return OK;
+}
+
+/*  Estas funciones son para comprobar que la lista
+    funcione correctamente */
+void print_all_elems_ini(LinkedList * l) {
+
+    Node * node = l->first;
+
+    while(node!=NULL) {
+        printf("%d ",*(int *)node->data);
+        node = (Node *)node->next;
+    }
+    printf("\n");
+
+    return;
+}
+
+void print_all_elems_fin(LinkedList * l) {
+
+    Node * node = l->last;
+
+    while(node!=NULL) {
+        printf("%d ",*(int *)node->data);
+        node = (Node *)node->previous;
+    }
+    printf("\n");
+
+    return;
 }
