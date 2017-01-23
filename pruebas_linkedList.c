@@ -39,10 +39,10 @@ int main(int argc,char* argv[]) {
 	insert_list(lista, (void *)&e2);
 	insert_list(lista, (void *)&e3);
 	insert_list(lista, (void *)&e4);
-	/*insert_list(lista, (void *)&e5);
+	insert_list(lista, (void *)&e5);
 	insert_list(lista, (void *)&e6);
 	insert_list(lista, (void *)&e7);
-	insert_list(lista, (void *)&e8);*/
+	insert_list(lista, (void *)&e8);
 
 	printf("Hasta aquí bien 5\n");
 	print_all_elems_ini(lista);
@@ -51,11 +51,28 @@ int main(int argc,char* argv[]) {
 
 	printf("Hasta aquí bien 6\n");
 	int ini = 0;
-	int fin = 3;
-	mergersort(lista,&ini,&fin,int_comparator);
+	int fin = 7;
+	mergersort(lista,&ini,&fin,int_int_to_int_comparator);
 
 	printf("Hasta aquí bien 7\n");
 
+	print_all_elems_ini(lista);
+
+	destroy_list (lista);
+	lista = create_list(NULL);
+
+	printf("Hasta aquí bien 8\n");
+	insert_list(lista, (void *)&e1);
+	insert_list(lista, (void *)&e2);
+	insert_list(lista, (void *)&e3);
+	insert_list(lista, (void *)&e4);
+	insert_list(lista, (void *)&e5);
+	insert_list(lista, (void *)&e6);
+	insert_list(lista, (void *)&e7);
+	insert_list(lista, (void *)&e8);
+
+	print_all_elems_ini(lista);
+	quicksort(lista,&ini,&fin, medio,int_int_to_void_comparator);
 	print_all_elems_ini(lista);
 
 	destroy_list (lista);

@@ -51,7 +51,11 @@ int delete_elem_by_pos(int pos, LinkedList *l);
 
 int add_datos_lista(LinkedList * l, double** datos, int n_datos);
 
-int int_comparator(LinkedList * l, int* i, int* j);
+int int_int_to_int_comparator(LinkedList * l, int* i, int* j);
+
+int int_int_to_void_comparator(LinkedList * l, int* i, void* elem);
+
+int medio(LinkedList * l,int* ini, int* fin);
 
 /*  Estas funciones son para comprobar que la lista
     funcione correctamente */
