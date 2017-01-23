@@ -72,6 +72,7 @@ LinkedList* create_list(comparator comparacion) {
  * \b create_list(3), \b destroy_list(3), \b delete_elem_list(3),\b is_empty_list(3), \b find(3), \b insert_list(3), \b destroy_all_nodes(3)
 */
 void *  destroy_node(Node * n) {
+	printf("destroy_node %d\n",*(int *)n->data);
     n->data = NULL;
     n->next = NULL;
     n->previous = NULL;
@@ -329,6 +330,7 @@ int insert_list(LinkedList * l, void * elem){
  * Adrian Bueno (adrian.buenoj@estudiante.uam.es)
 */
 int destroy_all_nodes (Node * first){
+
     if (first != NULL){ 
         destroy_all_nodes((Node *)first->next);
         
@@ -385,18 +387,36 @@ int destroy_list (LinkedList * lista){
     return TRUE;
 }
 
-void* return_element_by_pos(int pos, LinkedList *l) {
+void* return_element_by_pos(int* pos, LinkedList *l) {
     Node *nodoaux = NULL;
 
     if (!l) {
         //syslog(LOG_ERR, "Error al buscar un elemento en la lista, debido a un puntero nulo");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
     int i = 0;
 
     for (nodoaux = l->first; nodoaux != NULL; nodoaux = (Node *)nodoaux->next,i++) {
-        if (i == pos) {
+        if (i == *pos) {
             return nodoaux->data;
+        }
+    }
+    return NULL;
+}
+
+Node* return_node_by_pos(int* pos, LinkedList *l) {
+    Node *nodoaux = NULL;
+
+    if (!l) {
+        //syslog(LOG_ERR, "Error al buscar un elemento en la lista, debido a un puntero nulo");
+        return NULL;
+    }
+    int i = 0;
+    printf("%d\n",*pos);
+    for (nodoaux = l->first; nodoaux != NULL; nodoaux = (Node *)nodoaux->next,i++) {
+        if (i == *pos) {
+        	printf("DDDD-%d\n",*(int *)nodoaux->data);
+            return nodoaux;
         }
     }
     return NULL;
@@ -418,8 +438,8 @@ int delete_elem_by_pos(int pos, LinkedList *l){
     /*Si el elemento fuera el primero de todos*/
     node = l->first;
     if(pos == 0){
-        l->first = (Node *)node->next;
         l->first->previous = NULL;
+        l->first = (Node *)node->next;
         node = destroy_node(node);
         return TRUE;
     }
@@ -464,9 +484,12 @@ int add_datos_lista(LinkedList * l, double** datos, int n_datos) {
 
 int int_comparator(LinkedList * l, int* i, int* j) {
 
-    int elem1 = *(int *)return_element_by_pos(*i,l);
-    int elem2 = *(int *)return_element_by_pos(*j,l);
+    //printf("Hola?? i-%d j-%d\n",*i,*j);
+    printf("valor i - %d. valor j - %d\n",*i,*j);
+    int elem1 = *(int *)return_element_by_pos(i,l);
+    int elem2 = *(int *)return_element_by_pos(j,l);
 
+    printf("Comparo elem1-%d//elem2-%d\n",elem1,elem2);
     if (elem1 < elem2)
         return 1;
     else if (elem1 == elem2)
@@ -475,6 +498,7 @@ int int_comparator(LinkedList * l, int* i, int* j) {
         return -1;
 }
 
+//The element which it must to swap it's the element in pos2
 int swap(LinkedList * l, int* pos1, int* pos2) {
 
     Node* node1 = NULL;
@@ -482,68 +506,98 @@ int swap(LinkedList * l, int* pos1, int* pos2) {
     Node* naux = NULL;
     int i = 0;
 
+    //printf("pos1-%d//pos2-%d\n",*pos1,*pos2);
+
     for (naux = l->first; node1 == NULL || node2 == NULL;naux = (Node *)naux->next,i++) {
+        //printf("En la posicion %d, el valor es de %d\n",i,*(int *)naux->data);
         if (i == *pos1) 
             node1 = (Node*)naux;
         if (i == *pos2)
             node2 = (Node*)naux;
     }
 
-    naux = (Node *)node1->next;
-    node1->next = node2->next;
-    node2->next = (struct Node *)naux;
+    //printf("Swapeo Node1 info: %d, Node2 info: %d\n",*(int *)node1->data,*(int *)node2->data);
+    //Si son casi la misma posicion +-1 se íntercambian los elementos
+    if (*pos1 - 1 == *pos2 || *pos1 + 1 == *pos2 || *pos2 - 1 == *pos1 || *pos2 + 1 == *pos1){
+        void *aux = node1->data;
+        node1->data = node2->data;
+        node2->data = aux;
+    }else {
+    	printf("Hola\n");
+        //printf("Pos2 antes: %d\n",*pos2);
+        //*pos2-=1;
+        //printf("Pos2 despues: %d\n",*pos2);
+        Node* node_posj = return_node_by_pos(pos2,l); // swap
 
-    naux = (Node *)node1->previous;
-    node1->previous = node2->previous;
-    node2->previous = (struct Node *)naux;
+        //printf("Valor del node1: %d\n",*(int *)node1->data);
+		//printf("Valor del node2: %d\n",*(int *)node2->data);
 
-    if (node1->next == NULL){
-        l->last = (Node *)node1;
-    }
-    if (node1->previous == NULL){
-        l->first = (Node *)node1;
+        Node* node = (Node *) malloc(sizeof (Node));
+        node->data = node_posj->data;
+
+
+        //Change the order of the nodes previous and next of the node which we're going to change
+        if(node_posj->next != NULL) {
+            naux = (Node *)node_posj->next;
+            naux->previous = node_posj->previous;
+            naux = (Node *)node_posj->previous;
+            naux->next = node_posj->next;
+        }else{
+        	l->last = (Node*)node_posj->previous;
+        	naux=(Node*)node_posj->previous;
+        	naux->next = NULL;
+        }
+              	
+        destroy_node(node_posj);
+
+        int var_aux = *pos1-1;
+
+        Node* node_posi = NULL;
+        if(var_aux < 0) { //En caso de devolver un nodo nulo
+        	printf("Aquiiiiiii\n");
+        	var_aux = 0;
+        	node_posi = return_node_by_pos(&var_aux,l); 
+        	node->next = (struct Node *)node_posi;
+        	node_posi->previous = (struct Node *)node;
+        	l->first = (Node *)node;
+        }else {
+        	node_posi = return_node_by_pos(&var_aux,l); // i - 1
+        	node->next = node_posi->next;
+        	node->previous = (struct Node *)node_posi;
+        	node_posi->next = (struct Node *)node;
+        	naux = (Node *)node->next;
+        	naux->previous = (struct Node *)node;
+        }        
     }
 
-    if (node2->next == NULL){
-        l->last = (Node *)node2;
-    }
-    if (node2->previous == NULL){
-        l->first = (Node *)node2;
-    }
-
-    if (node1->next != NULL){
-        naux = (Node *)node1->next;
-        naux->previous = (struct Node *)node1;
-    }
-    if (node1->previous != NULL){
-        naux = (Node *)node1->previous;
-        naux->next = (struct Node *)node1;
-    }
-    if (node2->next != NULL){
-        naux = (Node *)node2->next;
-        naux->previous = (struct Node *)node2;
-    }
-    if(node2->previous != NULL){
-        naux = (Node *)node2->previous;
-        naux->next = (struct Node *)node2;
-    }
+    printf("HEHEHEHEHEHEHE\n");
+    print_all_elems_ini(l);
    
    return OK;
 }
 
+//REVISAR
 int merge(LinkedList * l, int* ini, int* fin, int* medio,lcmp cmp) {
 
     int i = *ini;
-    int j = *fin + 1;
+    int j = *medio + 1;
 
+    //printf("Antes --> i-%d y j-%d\n",i,j);
+    //print_all_elems_ini(l);
     for (;i<=*medio && j <=*fin;) {
-        if(cmp(l,&i,&j) == 1)
+        if(cmp(l,&i,&j) == 1){
             i++; //El caso de que el valor de i sea menor o igual a j.
-        else{
+            //printf("Comparo y no hay cambio\n");
+        }else{
             swap(l,&i,&j);
             j++;
+            i++;
+            //printf("Comparo y hay cambio\n");
         }
     }
+    
+    //printf("Despues --> i-%d y j-%d\n",i,j);
+    print_all_elems_ini(l);
     return OK;
 }
 
@@ -558,8 +612,12 @@ int mergersort(LinkedList * l, int* ini, int* fin,lcmp cmp) {
     else if(*ini == *fin)
         return FALSE;
     else{
+        printf("1º ini %d, fin %d\n",*ini,*fin);
         c1 = mergersort(l,ini,&medio,cmp);
-        c2 = mergersort(l,&medio+1,fin,cmp);
+        medio++;
+        printf("2º ini %d, fin %d\n",*ini,*fin);
+        c2 = mergersort(l,&medio,fin,cmp);
+        medio--;
     }
     if (c1 == ERR && c2 == ERR)
         return ERR;
@@ -572,7 +630,7 @@ int mergersort(LinkedList * l, int* ini, int* fin,lcmp cmp) {
 int partir(LinkedList * l, int* ini, int* fin, pfunc_pivote pivote, lcmp comparator){
 
     int b = pivote(l,ini,fin);
-    void* a = (int *)return_element_by_pos(b,l);
+    void* a = (int *)return_element_by_pos(&b,l);
     swap(l,ini,&b);
     int i=0;
     b=*ini;
@@ -612,10 +670,10 @@ int quicksort(LinkedList * l, int* ini, int* fin, pfunc_pivote pivote, lcmp comp
     funcione correctamente */
 void print_all_elems_ini(LinkedList * l) {
 
-    Node * node = l->first;
+    Node * node = (Node *)l->first;
 
     while(node!=NULL) {
-        printf("%d ",*(int *)node->data);
+        printf("%d ",*((int *)node->data));
         node = (Node *)node->next;
     }
     printf("\n");

@@ -19,6 +19,7 @@ typedef struct{
     struct Node* previous;
 }Node;
 
+// Añadir un contador para ver el número de elementos
 typedef struct {
     comparator cmp;
     Node * first;
@@ -44,11 +45,13 @@ int destroy_all_nodes (Node * first);
 
 int destroy_list (LinkedList * lista);
  
-void* return_element_by_pos(int pos, LinkedList *l);
+void* return_element_by_pos(int* pos, LinkedList *l);
 
 int delete_elem_by_pos(int pos, LinkedList *l);
 
 int add_datos_lista(LinkedList * l, double** datos, int n_datos);
+
+int int_comparator(LinkedList * l, int* i, int* j);
 
 /*  Estas funciones son para comprobar que la lista
     funcione correctamente */
