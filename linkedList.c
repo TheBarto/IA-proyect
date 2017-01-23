@@ -36,9 +36,14 @@ LinkedList* create_list(comparator comparacion) {
     LinkedList * lista = (LinkedList *) malloc(sizeof(LinkedList));
     if(lista == NULL) return NULL;
  
-    lista->cmp = comparacion;
-    lista->first = NULL;
-    lista->last = NULL;
+ 	CMP(lista) = comparacion;
+    //lista->cmp = comparacion;
+    FIRST(lista) = NULL;
+    //lista->first = NULL;
+    LAST(lista) = NULL;
+    //lista->last = NULL;
+    ELEMS(lista) = 0;
+    //lista->n_elems = 0;
  
     return lista;
 }
@@ -72,9 +77,12 @@ LinkedList* create_list(comparator comparacion) {
  * \b create_list(3), \b destroy_list(3), \b delete_elem_list(3),\b is_empty_list(3), \b find(3), \b insert_list(3), \b destroy_all_nodes(3)
 */
 void *  destroy_node(Node * n) {
-    n->data = NULL;
-    n->next = NULL;
-    n->previous = NULL;
+    DATA(n) = NULL;
+    //n->data = NULL;
+    NEXT(n) = NULL;
+    //n->next = NULL;
+    PREVIOUS(n) = NULL;
+    //n->previous = NULL;
     free(n);
     n = NULL;
     
@@ -115,7 +123,6 @@ void *  destroy_node(Node * n) {
  * Manuel Reyes (manuel.reyes@estudiante.uam.es)
  * Jorge Guillen (jorge.guillen@estudiante.uam.es)
 */
- 
 int delete_elem_list(LinkedList * l, void * elem){
     Node * node;
     Node * node_anterior;
@@ -131,34 +138,46 @@ int delete_elem_list(LinkedList * l, void * elem){
     }
  
     /*Si el elemento fuera el primero de todos*/
-    node = l->first;
-    if(l->cmp(elem, node->data)==TRUE){
-        l->first = (Node *)node->next;
-        l->first->previous = NULL;
+    //node = l->first;
+    node = FIRST(l);
+    if(CMP(l)(elem, node->data)==TRUE){
+    	FIRST(l) = (Node *)NEXT(node);
+        //l->first = (Node *)node->next;
+        PREVIOUS(FIRST(l)) = NULL;
+        //l->first->previous = NULL;
         node = destroy_node(node);
         return TRUE;
     }
 
     /*Busqueda del elemento*/
-    node_anterior = l->first;
-    node = (Node *)l->first->next;
+    node_anterior = FIRST(l);
+    //node_anterior = l->first;
+    node = (Node *)NEXT(FIRST(l));
+    //node = (Node *)l->first->next;
     Node *e = NULL;
+    ELEMS(l)--;
+    //l->n_elems--;
     while(node!=NULL){
-        if(l->cmp(elem, node->data)==TRUE){ 
+        if(CMP(l)(elem, node->data)==TRUE){ 
             /*Hemos encontrado el elemento*/
             if(node->next==NULL){
                 /*El elemento es el ultimo, redefinimos last*/
-                l->last = node_anterior;
+                LAST(l) = node_anterior;
+                //l->last = node_anterior;
             }
-            node_anterior->next = node->next;
-            e = (Node *)node->next;
-            e->previous = (struct Node *)node_anterior;
+            NEXT(node_anterior) = NEXT(node);
+            //node_anterior->next = node->next;
+            e = (Node *)NEXT(node);
+            //e = (Node *)node->next;
+            PREVIOUS(e) = (struct Node *)node_anterior;
+            //e->previous = (struct Node *)node_anterior;
             node = destroy_node(node);
             return TRUE;
         }
         /*No era el objetivo, continuamos buscando*/
         node_anterior = node;
-        node =(Node *) node->next;
+        node =(Node *) NEXT(node);
+        //node =(Node *) node->next;
     }
     /*El elemento no ha sido encontrado*/
     return FALSE;
@@ -193,7 +212,7 @@ int is_empty_list(LinkedList * l) {
     if(l == NULL){
         return ERR;
     }
-    if(l->first == NULL){
+    if(FIRST(l) == NULL){
         return TRUE;
     }
     return FALSE;
@@ -237,9 +256,9 @@ void* find(void *clave, LinkedList *l) {
     }
 
 
-    for (nodoaux = l->first; nodoaux != NULL; nodoaux = (Node *)nodoaux->next) {
-        if (l->cmp(nodoaux->data,clave) == TRUE) {
-            return nodoaux->data;
+    for (nodoaux = FIRST(l); nodoaux != NULL; nodoaux = (Node *)NEXT(nodoaux)) {
+        if (CMP(l)(DATA(nodoaux),clave) == TRUE) {
+            return DATA(nodoaux);
         }
     }
     return NULL;
@@ -282,17 +301,27 @@ int insert_list(LinkedList * l, void * elem){
     if (node == NULL){
         return ERR;
     }
-    node->data = elem;
-    node->next = NULL;
+    DATA(node) = elem;
+    //node->data = elem;
+    NEXT(node) = NULL;
+    //node->next = NULL;
+    ELEMS(l)++;
+    //l->n_elems++;
     if (is_empty_list(l)==TRUE){
-        l->first = node;
-        l->last = node;
-        node->previous = NULL;
+        FIRST(l) = node;
+        //l->first = node;
+        LAST(l) = node;
+        //l->last = node;
+        PREVIOUS(node) = NULL;
+        //node->previous = NULL;
         return TRUE;
     }
-    node->previous = (struct Node *) l->last;
-    l->last->next = (struct Node *) node;
-    l->last = node;
+    PREVIOUS(node) = (struct Node *) LAST(l);
+    //node->previous = (struct Node *) l->last;
+    NEXT(LAST(l)) = (struct Node *) node;
+    //l->last->next = (struct Node *) node;
+    LAST(l) = node;
+    //l->last = node;
     return TRUE;
 }
 
@@ -331,7 +360,7 @@ int insert_list(LinkedList * l, void * elem){
 int destroy_all_nodes (Node * first){
 
     if (first != NULL){ 
-        destroy_all_nodes((Node *)first->next);
+        destroy_all_nodes((Node *)NEXT(first));
         
         first = destroy_node(first);
     }
@@ -375,12 +404,17 @@ int destroy_list (LinkedList * lista){
         return ERR;
  
     if (is_empty_list(lista) == FALSE){
-        destroy_all_nodes(lista->first);
+        destroy_all_nodes(FIRST(lista));
     }
  
-    lista->first = NULL;
-    lista->last = NULL;
-    lista->cmp = NULL;
+    FIRST(lista) = NULL;
+    //lista->first = NULL;
+    LAST(lista) = NULL;
+    //lista->last = NULL;
+    CMP(lista) = NULL;
+    //lista->cmp = NULL;
+    ELEMS(lista) = 0;
+    //lista->n_elems = 0;
     free(lista);
  
     return TRUE;
@@ -395,9 +429,9 @@ void* return_element_by_pos(int* pos, LinkedList *l) {
     }
     int i = 0;
 
-    for (nodoaux = l->first; nodoaux != NULL; nodoaux = (Node *)nodoaux->next,i++) {
+    for (nodoaux = FIRST(l); nodoaux != NULL; nodoaux = (Node *)NEXT(nodoaux),i++) {
         if (i == *pos) {
-            return nodoaux->data;
+            return DATA(nodoaux);
         }
     }
     return NULL;
@@ -411,7 +445,7 @@ Node* return_node_by_pos(int* pos, LinkedList *l) {
         return NULL;
     }
     int i = 0;
-    for (nodoaux = l->first; nodoaux != NULL; nodoaux = (Node *)nodoaux->next,i++) {
+    for (nodoaux = FIRST(l); nodoaux != NULL; nodoaux = (Node *)NEXT(nodoaux),i++) {
         if (i == *pos) {
             return nodoaux;
         }
@@ -433,35 +467,47 @@ int delete_elem_by_pos(int pos, LinkedList *l){
     }
  
     /*Si el elemento fuera el primero de todos*/
-    node = l->first;
+    //node = l->first;
+    node = FIRST(l);
     if(pos == 0){
-        l->first->previous = NULL;
-        l->first = (Node *)node->next;
+        PREVIOUS(FIRST(l)) = NULL;
+        //l->first->previous = NULL;
+        FIRST(l) = (Node *)NEXT(node);
+        //l->first = (Node *)node->next;
         node = destroy_node(node);
         return TRUE;
     }
 
     /*Busqueda del elemento*/
-    node_anterior = l->first;
-    node = (Node *)l->first->next;
+    //node_anterior = l->first;
+    node_anterior = FIRST(l);
+    //node = (Node *)l->first->next;
+    node = (Node *) NEXT(FIRST(l));
     int i = 1;
     Node* e = NULL;
+    ELEMS(l)--;
+    //l->n_elems--;
     while(node!=NULL){
         if(i == pos){ 
             /*Hemos encontrado el elemento*/
-            if(node->next==NULL){
+            if(NEXT(node)==NULL){
                 /*El elemento es el ultimo, redefinimos last*/
-                l->last = node_anterior;
+                LAST(l) = node_anterior;
+                //l->last = node_anterior;
             }
-            node_anterior->next = node->next;
-            e = (Node *)node->next;
-            e->previous = (struct Node *)node_anterior;
+            NEXT(node_anterior) = NEXT(node);
+            //node_anterior->next = node->next;
+            e = (Node *)NEXT(node);
+            //e = (Node *)node->next;
+       		PREVIOUS(e) = (struct Node *)node_anterior;
+            //e->previous = (struct Node *)node_anterior;
             node = destroy_node(node);
             return TRUE;
         }
         /*No era el objetivo, continuamos buscando*/
         node_anterior = node;
-        node =(Node *) node->next;
+        node = (Node *) NEXT(node); 
+        //node = (Node *) node->next;
         i++;
     }
     /*El elemento no ha sido encontrado*/
@@ -506,7 +552,6 @@ int int_int_to_void_comparator(LinkedList * l, int* i, void* elem) {
 }
 
 //The element which it must to swap it's the element in pos2
-//Change the name of this function
 int pseudoswap(LinkedList * l, int* pos1, int* pos2) {
 
     Node* node1 = NULL;
@@ -517,7 +562,7 @@ int pseudoswap(LinkedList * l, int* pos1, int* pos2) {
     if(*pos1 == *pos2)
     	return OK;
 
-    for (naux = l->first; node1 == NULL || node2 == NULL;naux = (Node *)naux->next,i++) {
+    for (naux = FIRST(l); node1 == NULL || node2 == NULL;naux = (Node *)NEXT(naux),i++) {
         if (i == *pos1) 
             node1 = (Node*)naux;
         if (i == *pos2)
@@ -525,24 +570,35 @@ int pseudoswap(LinkedList * l, int* pos1, int* pos2) {
     }
 
     if (*pos1 - 1 == *pos2 || *pos1 + 1 == *pos2 || *pos2 - 1 == *pos1 || *pos2 + 1 == *pos1){
-        void *aux = node1->data;
-        node1->data = node2->data;
-        node2->data = aux;
+        void *aux = DATA(node1);
+        DATA(node1) = DATA(node2);
+        DATA(node2) = aux;
+        //void *aux = node1->data;
+        //node1->data = node2->data;
+        //node2->data = aux;
     }else {
         Node* node_posj = return_node_by_pos(pos2,l); // swap
         Node* node = (Node *) malloc(sizeof (Node));
-        node->data = node_posj->data;
+        DATA(node) = DATA(node_posj);
+        //node->data = node_posj->data;
 
         //Change the order of the nodes previous and next of the node which we're going to change
-        if(node_posj->next != NULL) {
-            naux = (Node *)node_posj->next;
-            naux->previous = node_posj->previous;
-            naux = (Node *)node_posj->previous;
-            naux->next = node_posj->next;
+        if(NEXT(node_posj) != NULL) {
+        	naux = (Node *)NEXT(node_posj);
+            //naux = (Node *)node_posj->next;
+            PREVIOUS(naux) = PREVIOUS(node_posj);
+            //naux->previous = node_posj->previous;
+            naux = (Node *)PREVIOUS(node_posj);
+            //naux = (Node *)node_posj->previous;
+            NEXT(naux) = NEXT(node_posj);
+            //naux->next = node_posj->next;
         }else{
-        	l->last = (Node*)node_posj->previous;
-        	naux=(Node*)node_posj->previous;
-        	naux->next = NULL;
+        	LAST(l) = (Node*)PREVIOUS(node_posj);
+        	//l->last = (Node*)node_posj->previous;
+        	naux=(Node*)PREVIOUS(node_posj);
+        	//naux=(Node*)node_posj->previous;
+        	NEXT(naux) = NULL;
+        	//naux->next = NULL;
         }
               	
         destroy_node(node_posj);
@@ -553,16 +609,24 @@ int pseudoswap(LinkedList * l, int* pos1, int* pos2) {
         if(var_aux < 0) { //En caso de devolver un nodo nulo
         	var_aux = 0;
         	node_posi = return_node_by_pos(&var_aux,l); 
-        	node->next = (struct Node *)node_posi;
-        	node_posi->previous = (struct Node *)node;
-        	l->first = (Node *)node;
+        	NEXT(node) = (struct Node *)node_posi;
+        	//node->next = (struct Node *)node_posi;
+        	PREVIOUS(node_posi) = (struct Node *)node;
+        	//node_posi->previous = (struct Node *)node;
+        	FIRST(l) = (Node *)node;
+        	//l->first = (Node *)node;
         }else {
         	node_posi = return_node_by_pos(&var_aux,l); // i - 1
-        	node->next = node_posi->next;
-        	node->previous = (struct Node *)node_posi;
-        	node_posi->next = (struct Node *)node;
-        	naux = (Node *)node->next;
-        	naux->previous = (struct Node *)node;
+        	NEXT(node) = NEXT(node_posi);
+        	//node->next = node_posi->next;
+        	PREVIOUS(node) = (struct Node *)node_posi;
+        	//node->previous = (struct Node *)node_posi;
+        	NEXT(node_posi) = (struct Node *)node; 
+        	//node_posi->next = (struct Node *)node;
+        	naux = (Node *)NEXT(node);
+        	//naux = (Node *)node->next;
+        	PREVIOUS(naux) = (struct Node *)node;
+        	//naux->previous = (struct Node *)node;
         }        
     }
    
@@ -616,16 +680,19 @@ int swap(LinkedList* l,int* pos1,int* pos2) {
     Node* naux = NULL;
     int i = 0;
 
-	for (naux = l->first; node1 == NULL || node2 == NULL;naux = (Node *)naux->next,i++) {
+	for (naux = FIRST(l); node1 == NULL || node2 == NULL;naux = (Node *)NEXT(naux),i++) {
         if (i == *pos1) 
             node1 = (Node*)naux;
         if (i == *pos2)
             node2 = (Node*)naux;
     }
 
-    void* void_aux = node1->data;
-    node1->data = node2->data;
-    node2->data = void_aux;
+    void *aux = DATA(node1);
+	DATA(node1) = DATA(node2);
+	DATA(node2) = aux;
+    //void* void_aux = node1->data;
+    //node1->data = node2->data;
+    //node2->data = void_aux;
 
     return OK;
 }

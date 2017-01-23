@@ -11,6 +11,14 @@
 #define FALSE 0
 #define ERR -1
 
+#define FIRST(x) x->first
+#define LAST(x) x->last
+#define CMP(x) x->cmp
+#define ELEMS(x) x->n_elems
+#define DATA(x) x->data
+#define NEXT(x) x->next
+#define PREVIOUS(x) x->previous
+
 typedef int (*comparator)(const void *a, const void *b);
 
 typedef struct{
@@ -19,11 +27,11 @@ typedef struct{
     struct Node* previous;
 }Node;
 
-// Añadir un contador para ver el número de elementos
 typedef struct {
     comparator cmp;
     Node * first;
     Node * last;
+    int n_elems;
 }LinkedList;
 
 typedef int (*lcmp)(LinkedList *l, const int *pos1, const int *pos2);
