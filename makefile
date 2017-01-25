@@ -1,11 +1,16 @@
 CC=gcc
 CCFLAGS = -Wall -Wextra -g
 EXE = linkedList
+EXE2 = datos
 #EXE2 = SerieTemporal
 
 linkedListTest:
 	rm -f core $(EXE)
 	$(CC) $(CCFLAGS) pruebas_linkedList.c linkedList.c -o $(EXE) -lm
+
+datosTest:
+	rm -f core $(EXE)
+	$(CC) $(CCFLAGS) pruebas_datos.c Datos.c linkedList.c -o $(EXE2) -lm
 
 #apartado1: 
 #	./Encoder -file alfabeto.txt -train 1 -tasaApren 0.01 -capaOculta 5 -fSalida salida_alfabeto.txt -tolerancia 0.00001 -apartado 1

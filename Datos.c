@@ -1,4 +1,6 @@
 #include "Datos.h"
+#include <unistd.h>
+#include <fcntl.h>
 
 //Añadir opcion de swapear datos
 /* Explicacion de la función
@@ -12,10 +14,11 @@ Para ello, el fichero tiene que tener una cabecera específica, con los siguient
 	-	El número total de datos que tiene el fichero(las lineas de datos).
 	-	El número distinto de clases del fichero.
 */
-Datos* inicializar_datos(char* fichero, double porcentaje_train, double porcentaje_test) {
+/*Datos* inicializar_datos(char* fichero, double porcentaje_train, double porcentaje_test) {
 
-    FILE* f = fopen(fichero, "r");
-    if (!f) {
+    //FILE* f = fopen(fichero, "r");
+    int file_descriptor = open(fichero,O_RDONLY,S_IRUSR);
+    if (file_descriptor == -1) {
         printf("Error al abrir el fichero, abortando\n");
         return NULL;
     }
@@ -23,22 +26,22 @@ Datos* inicializar_datos(char* fichero, double porcentaje_train, double porcenta
     //Reservamos la memoria necesaría para almacenar los datos y leemos la cabecera del fichero
     char *linea = (char *) malloc(TAM_LINEA * sizeof (char));
     double *datos = (double *) malloc(TAM_LINEA * sizeof (double));
-    fgets(linea, TAM_LINEA, f);
-    parsear_valor(linea, datos);
+    fgets(linea, TAM_LINEA, f); // Read the first line
+    parsear_valor(linea, datos); // Parse the line
     Datos* d = inicializar_estructura((int) (datos[0] + datos[1]));
 
-    int i = 0;
-    double** total_datos = (double **) malloc(datos[2] * sizeof (double *));
-    for (i = 0; i < datos[2]; i++)
-        total_datos[i] = (double *) malloc((datos[0] + datos[1]) * sizeof (double));
+    //The size of one line
+    int size_line = (*datos + *(datos+1))*2 - 1;
+    //int i = 0;
+    //double** total_datos = (double **) malloc(datos[2] * sizeof (double *));
+    //for (i = 0; i < datos[2]; i++)
+    //    total_datos[i] = (double *) malloc((datos[0] + datos[1]) * sizeof (double));
 
     //Guardamos los datos en la estructura
-    d->n_atributos = datos[0];
-    d->n_clases = datos[1];
-    d->n_datos = datos[2];
-    d->total_clases = datos[3];
-
+    d->n_atributos = *datos;
+    d->n_clases = *(datos+1);
     free(datos);
+    datos = NULL;
 
     //Leemos la siguiente linea de la cabecera
     fgets(linea, TAM_LINEA, f);
@@ -77,12 +80,38 @@ Datos* inicializar_datos(char* fichero, double porcentaje_train, double porcenta
     d->datos = crearParticion(total_datos, n_datos, porcentaje_train, porcentaje_test);
 
     return d;
+}*/
+
+int rline(int* fd, char* buffer,int* size) {
+
+    int size_read = -1;
+    if (size == NULL)
+        size_read = 512; //Poner macro
+    else
+        size_read = *size;
+
+    int bytes_read = read(*fd,buffer,size_read);
+    /*if(bytes_read != size_read){
+        return -1; //Caso de error
+    }*/
+
+    printf("Dentro --> %s\n",buffer);
+    char *p_aux = strchr(buffer,'\n');
+    if(p_aux == NULL)
+        return -1; //Error
+
+    buffer = strtok(buffer,"\n");
+    printf("Después del strtok: %s\n",buffer);
+    //lseek(*fd,strlen(buffer),SEEK_CUR);
+
+    return 1;
 }
+
 /*
 Inicializamos una estructura donde guardar los datos
 
 */
-Datos* inicializar_estructura(int tipos) {
+/*Datos* inicializar_estructura(int tipos) {
 
     Datos* d = (Datos *) malloc(sizeof (Datos));
     d->tipos_cabecera = (Tipos *) malloc(tipos * sizeof (Tipos));
@@ -93,7 +122,7 @@ Datos* inicializar_estructura(int tipos) {
     d->n_atributos = 0;
     d->n_clases = 0;
     d->n_datos = 0;
-    d->total_clases = 0;
+    //d->total_clases = 0;
 
     return d;
 }
@@ -208,4 +237,4 @@ int comparador(const void *a, const void *b) {
 
     if (strcmp(nc->valor_nominal, b) == 0) return 1;
     else return 0;
-}
+}*/
